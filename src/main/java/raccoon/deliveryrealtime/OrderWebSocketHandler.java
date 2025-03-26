@@ -27,12 +27,28 @@ public class OrderWebSocketHandler extends TextWebSocketHandler {
 
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
-    Long orderId = Long.valueOf(message.getPayload());
-    sessionMap.put(orderId, session);
-
-    Order order = orderStore.get(orderId);
-    if (order != null) {
-      session.sendMessage(new TextMessage(objectMapper.writeValueAsString(order)));
+    String payload = message.getPayload();
+    try {
+      if (payload.startsWith("{")) {
+        // JSON 메시지 → 상태 변경
+        OrderUpdateMessage update = objectMapper.readValue(payload, OrderUpdateMessage.class);
+        Order order = orderStore.get(update.getOrderId());
+        if (order != null) {
+          order.setStatus(update.getStatus());
+          order.setUpdatedAt(update.getUpdatedAt());
+          notifyOrderUpdate(order);
+        }
+      } else {
+        // 문자열 → 주문 ID로 구독
+        Long orderId = Long.valueOf(payload);
+        sessionMap.put(orderId, session);
+        Order order = orderStore.get(orderId);
+        if (order != null) {
+          session.sendMessage(new TextMessage(objectMapper.writeValueAsString(order)));
+        }
+      }
+    } catch (Exception e) {
+      session.sendMessage(new TextMessage("{\"error\": \"Invalid message format\"}"));
     }
   }
 
