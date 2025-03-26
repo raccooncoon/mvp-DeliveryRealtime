@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>POS 주문 관리</title>
+  <title>POS 주문 관리(폴링 구성)</title>
   <style>
     body { font-family: sans-serif; }
     table { border-collapse: collapse; width: 100%; margin-top: 16px; }
@@ -12,6 +12,10 @@
 </head>
 <body>
 <h2>POS 주문 목록</h2>
+<label>고객 ID:
+  <input type="text" id="newCustomerId" placeholder="고객 ID 입력" />
+</label>
+<button onclick="createOrder()">주문 추가</button>
 <table>
   <thead>
   <tr>
@@ -81,6 +85,17 @@
 
   fetchOrders();
   setInterval(fetchOrders, 5000);
+
+  function createOrder() {
+    const customerId = document.getElementById("newCustomerId").value;
+    if (!customerId) return;
+
+    fetch(`/orders?customerId=${encodeURIComponent(customerId)}`, { method: 'POST' })
+      .then(() => {
+        document.getElementById("newCustomerId").value = "";
+        fetchOrders();
+      });
+  }
 </script>
 </body>
 </html>

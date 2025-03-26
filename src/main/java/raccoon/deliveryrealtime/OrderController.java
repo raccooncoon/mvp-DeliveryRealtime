@@ -22,7 +22,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class OrderController {
 
   private final ConcurrentMap<Long, Order> orderStore;
-  private final AtomicLong idGenerator = new AtomicLong(1);
+  private final AtomicLong idGenerator = new AtomicLong(1003);
   private final Map<Long, List<SseEmitter>> emitterMap = new ConcurrentHashMap<>();
   private final Map<Long, List<WebSocketSession>> sessionMap = new ConcurrentHashMap<>();
   private final ObjectMapper objectMapper = new ObjectMapper();

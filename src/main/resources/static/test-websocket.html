@@ -20,11 +20,6 @@
   </select>
 </label>
 <br />
-<label>고객 ID:
-  <input type="text" id="newCustomerId" placeholder="고객 ID 입력" />
-</label>
-<button onclick="createOrder()">주문 추가</button>
-<br />
 <button onclick="connect()">WebSocket 연결</button>
 <button onclick="updateStatus()">상태 변경 요청</button>
 
@@ -77,16 +72,6 @@
     });
   }
 
-  function createOrder() {
-    const customerId = document.getElementById("newCustomerId").value;
-    if (!customerId) return;
-
-    fetch(`/orders?customerId=${encodeURIComponent(customerId)}`, { method: 'POST' })
-      .then(() => {
-        document.getElementById("newCustomerId").value = "";
-        fetchOrders();
-      });
-  }
 </script>
 </body>
 </html>
