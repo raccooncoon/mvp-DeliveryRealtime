@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket 주문 상태 테스트</title>
+</head>
+<body>
+<h2>WebSocket 주문 상태 테스트</h2>
+<label>주문 ID: <input type="text" id="orderId" value="1000" /></label>
+<button onclick="connect()">WebSocket 연결</button>
+<pre id="output"></pre>
+
+<script>
+  let socket;
+
+  function connect() {
+    const orderId = document.getElementById("orderId").value;
+    const output = document.getElementById("output");
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.close();
+      output.textContent += "\n🔌 기존 연결 종료\n";
+    }
+
+    socket = new WebSocket("ws://localhost:8080/ws/orders");
+
+    socket.onopen = () => {
+      output.textContent += `✅ [연결됨] 주문 ID: ${orderId}\n`;
+      socket.send(orderId);
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      output.textContent += `📦 주문 상태 업데이트: ${JSON.stringify(data)}\n`;
+    };
+
+    socket.onerror = (err) => {
+      output.textContent += `❌ 오류 발생\n`;
+    };
+
+    socket.onclose = () => {
+      output.textContent += `🔌 연결 종료됨\n`;
+    };
+  }
+</script>
+</body>
+</html>

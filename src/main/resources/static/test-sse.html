@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SSE 주문 상태 테스트</title>
+</head>
+<body>
+<h2>주문 상태 SSE 구독</h2>
+<label>주문 ID: <input type="text" id="orderId" value="1000" /></label>
+<button onclick="connect()">구독 시작</button>
+<pre id="output"></pre>
+
+<script>
+  let eventSource;
+
+  function connect() {
+    const orderId = document.getElementById("orderId").value;
+    const output = document.getElementById("output");
+
+    if (eventSource) {
+      eventSource.close();
+      output.textContent += "\n🔌 기존 연결 종료\n";
+    }
+
+    const url = `orders/subscribe/${orderId}`;
+    eventSource = new EventSource(url);
+
+    eventSource.onopen = () => {
+      output.textContent += `✅ [연결됨] 주문 ID ${orderId}\n`;
+    };
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      output.textContent += `📦 주문 상태 업데이트: ${JSON.stringify(data)}\n`;
+    };
+
+    eventSource.onerror = (err) => {
+      output.textContent += `❌ 오류 발생 또는 연결 종료\n`;
+      eventSource.close();
+    };
+  }
+</script>
+</body>
+</html>
