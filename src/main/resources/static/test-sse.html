@@ -8,6 +8,16 @@
 <h2>주문 상태 SSE 구독</h2>
 <label>주문 ID: <input type="text" id="orderId" value="1000" /></label>
 <button onclick="connect()">구독 시작</button>
+<br />
+<label>상태 변경:
+  <select id="orderStatus">
+    <option value="ORDERED">ORDERED</option>
+    <option value="PAID">PAID</option>
+    <option value="DELIVERING">DELIVERING</option>
+    <option value="COMPLETED">COMPLETED</option>
+  </select>
+</label>
+<button onclick="updateStatus()">상태 변경 요청</button>
 <pre id="output"></pre>
 
 <script>
@@ -38,6 +48,20 @@
       output.textContent += `❌ 오류 발생 또는 연결 종료\n`;
       eventSource.close();
     };
+  }
+
+  function updateStatus() {
+    const orderId = document.getElementById("orderId").value;
+    const status = document.getElementById("orderStatus").value;
+
+    fetch(`/orders/${orderId}/status?status=${status}`, { method: 'PATCH' })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("output").textContent += `✅ [PATCH 완료] 상태 변경됨: ${JSON.stringify(data)}\n`;
+      })
+      .catch(err => {
+        document.getElementById("output").textContent += `❌ [PATCH 실패] ${err}\n`;
+      });
   }
 </script>
 </body>

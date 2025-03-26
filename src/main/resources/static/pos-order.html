@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>POS 주문 관리</title>
+  <style>
+    body { font-family: sans-serif; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    select, button { padding: 4px; }
+  </style>
+</head>
+<body>
+<h2>POS 주문 목록</h2>
+<table>
+  <thead>
+  <tr>
+    <th>주문 ID</th>
+    <th>고객 ID</th>
+    <th>현재 상태</th>
+    <th>상태 변경</th>
+  </tr>
+  </thead>
+  <tbody id="ordersBody"></tbody>
+</table>
+
+<script>
+  const statusList = ["ORDERED", "PAID", "DELIVERING", "COMPLETED"];
+
+  function fetchOrders() {
+    fetch('/orders')
+    .then(res => res.json())
+    .then(data => renderOrders(data));
+  }
+
+  function renderOrders(orders) {
+    const tbody = document.getElementById("ordersBody");
+    tbody.innerHTML = "";
+
+    orders.forEach(order => {
+      const row = document.createElement("tr");
+
+      const idCell = document.createElement("td");
+      idCell.textContent = order.id;
+
+      const customerCell = document.createElement("td");
+      customerCell.textContent = order.customerId;
+
+      const statusCell = document.createElement("td");
+      statusCell.textContent = order.status;
+
+      const updateCell = document.createElement("td");
+      const select = document.createElement("select");
+      statusList.forEach(status => {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status;
+        if (status === order.status) option.selected = true;
+        select.appendChild(option);
+      });
+      const button = document.createElement("button");
+      button.textContent = "변경";
+      button.onclick = () => updateStatus(order.id, select.value);
+
+      updateCell.appendChild(select);
+      updateCell.appendChild(button);
+
+      row.appendChild(idCell);
+      row.appendChild(customerCell);
+      row.appendChild(statusCell);
+      row.appendChild(updateCell);
+      tbody.appendChild(row);
+    });
+  }
+
+  function updateStatus(orderId, status) {
+    fetch(`/orders/${orderId}/status?status=${status}`, { method: 'PATCH' })
+    .then(res => res.json())
+    .then(() => fetchOrders());
+  }
+
+  fetchOrders();
+  setInterval(fetchOrders, 5000);
+</script>
+</body>
+</html>

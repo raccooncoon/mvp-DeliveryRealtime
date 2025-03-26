@@ -6,8 +6,28 @@
 </head>
 <body>
 <h2>WebSocket 주문 상태 테스트</h2>
-<label>주문 ID: <input type="text" id="orderId" value="1000" /></label>
+
+<label>주문 ID:
+  <input type="text" id="orderId" value="1000" />
+</label>
+<br />
+<label>상태 변경:
+  <select id="orderStatus">
+    <option value="ORDERED">ORDERED</option>
+    <option value="PAID">PAID</option>
+    <option value="DELIVERING">DELIVERING</option>
+    <option value="COMPLETED">COMPLETED</option>
+  </select>
+</label>
+<br />
+<label>고객 ID:
+  <input type="text" id="newCustomerId" placeholder="고객 ID 입력" />
+</label>
+<button onclick="createOrder()">주문 추가</button>
+<br />
 <button onclick="connect()">WebSocket 연결</button>
+<button onclick="updateStatus()">상태 변경 요청</button>
+
 <pre id="output"></pre>
 
 <script>
@@ -25,22 +45,47 @@
     socket = new WebSocket("ws://localhost:8080/ws/orders");
 
     socket.onopen = () => {
-      output.textContent += `✅ [연결됨] 주문 ID: ${orderId}\n`;
+      output.textContent += `✅ [WebSocket 연결됨] 주문 ID: ${orderId}\n`;
       socket.send(orderId);
     };
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      output.textContent += `📦 주문 상태 업데이트: ${JSON.stringify(data)}\n`;
+      output.textContent += `📦 실시간 상태 수신: ${JSON.stringify(data)}\n`;
     };
 
-    socket.onerror = (err) => {
-      output.textContent += `❌ 오류 발생\n`;
+    socket.onerror = () => {
+      output.textContent += "❌ WebSocket 오류 발생\n";
     };
 
     socket.onclose = () => {
-      output.textContent += `🔌 연결 종료됨\n`;
+      output.textContent += "🔌 WebSocket 연결 종료됨\n";
     };
+  }
+
+  function updateStatus() {
+    const orderId = document.getElementById("orderId").value;
+    const status = document.getElementById("orderStatus").value;
+
+    fetch(`/orders/${orderId}/status?status=${status}`, { method: 'PATCH' })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("output").textContent += `✅ [PATCH 완료] 상태 변경됨: ${JSON.stringify(data)}\n`;
+    })
+    .catch(err => {
+      document.getElementById("output").textContent += `❌ [PATCH 실패] ${err}\n`;
+    });
+  }
+
+  function createOrder() {
+    const customerId = document.getElementById("newCustomerId").value;
+    if (!customerId) return;
+
+    fetch(`/orders?customerId=${encodeURIComponent(customerId)}`, { method: 'POST' })
+      .then(() => {
+        document.getElementById("newCustomerId").value = "";
+        fetchOrders();
+      });
   }
 </script>
 </body>
